@@ -3,12 +3,13 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import ChatInterface from "@/components/chat-interface"
-import { LayoutDashboard, Users, BarChart3, Settings, LogOut, Menu, X } from "lucide-react"
+import { LayoutDashboard, Users, BarChart3, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function DashboardLayout({
   children,
@@ -16,7 +17,37 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false)
+
+  const navItems = [
+    {
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      label: "Dashboard"
+    },
+    {
+      href: "/dashboard/staff",
+      icon: Users,
+      label: "Staff Management"
+    },
+    {
+      href: "/dashboard/analytics",
+      icon: BarChart3,
+      label: "Analytics"
+    },
+    {
+      href: "/dashboard/settings",
+      icon: Settings,
+      label: "Settings"
+    },
+    {
+      href: "/dashboard/chat",
+      icon: MessageCircle,
+      label: "Chat Assistant"
+    }
+  ]
 
   const handleSignOut = async () => {
     await signOut({ redirect: false })
@@ -79,42 +110,37 @@ export default function DashboardLayout({
 
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-2 px-2">
-            <li>
-              <Link
-                href="/dashboard"
-                className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-md"
-              >
-                <LayoutDashboard className="mr-3 h-5 w-5" />
-                Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/staff"
-                className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-md"
-              >
-                <Users className="mr-3 h-5 w-5" />
-                Staff Management
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/analytics"
-                className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-md"
-              >
-                <BarChart3 className="mr-3 h-5 w-5" />
-                Analytics
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/settings"
-                className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-md"
-              >
-                <Settings className="mr-3 h-5 w-5" />
-                Settings
-              </Link>
-            </li>
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || 
+                             (item.href !== "/dashboard" && pathname?.startsWith(item.href))
+              const Icon = item.icon
+              
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center px-4 py-2 rounded-md",
+                      "transition-colors duration-200",
+                      "hover:bg-gray-700/50",
+                      {
+                        "bg-gray-700 text-white": isActive,
+                        "text-gray-300": !isActive
+                      }
+                    )}
+                  >
+                    <Icon className={cn(
+                      "mr-3 h-5 w-5",
+                      {
+                        "text-white": isActive,
+                        "text-gray-400": !isActive
+                      }
+                    )} />
+                    {item.label}
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
         </nav>
 
@@ -128,11 +154,84 @@ export default function DashboardLayout({
             Sign out
           </Button>
         </div>
-
-        <div className="flex-grow">
-          <ChatInterface />
-        </div>
       </div>
+
+      {/* Floating Chat Button */}
+      {pathname !== '/dashboard/chat' && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <Button
+            size="icon"
+            className={cn(
+              "h-14 w-14 rounded-full",
+              "bg-gradient-to-r from-blue-500 to-blue-600",
+              "shadow-[0_4px_20px_rgba(59,130,246,0.5)]",
+              "hover:shadow-[0_4px_24px_rgba(59,130,246,0.6)]",
+              "transition-all duration-300 ease-in-out",
+              "hover:scale-105",
+              "border-4 border-white"
+            )}
+            onClick={() => setIsChatOpen(!isChatOpen)}
+          >
+            <MessageCircle className="h-6 w-6 text-white" />
+          </Button>
+        </div>
+      )}
+
+      {/* Floating Chat Interface */}
+      {isChatOpen && pathname !== '/dashboard/chat' && (
+        <div className={cn(
+          "fixed bottom-24 right-6 z-40",
+          "w-[380px] h-[600px]",
+          "bg-gradient-to-b from-white to-gray-50/95",
+          "rounded-[2rem] rounded-br-md",
+          "shadow-[0_8px_40px_rgba(0,0,0,0.12)]",
+          "border border-white/60",
+          "backdrop-blur-sm",
+          "animate-in slide-in-from-bottom duration-300",
+          "overflow-hidden"
+        )}>
+          {/* Chat Header */}
+          <div className={cn(
+            "flex items-center justify-between",
+            "p-6 pb-4",
+            "bg-gradient-to-r from-blue-500/5 to-blue-600/5",
+            "border-b border-blue-100/50"
+          )}>
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "h-10 w-10 rounded-full",
+                "bg-gradient-to-r from-blue-500 to-blue-600",
+                "flex items-center justify-center",
+                "shadow-inner shadow-blue-600/20"
+              )}>
+                <MessageCircle className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800">Asisten Chat</h3>
+                <p className="text-xs text-gray-500">Siap membantu Anda</p>
+              </div>
+            </div>
+            <Button
+              size="icon"
+              className={cn(
+                "h-8 w-8 rounded-full",
+                "bg-gray-100 hover:bg-gray-200",
+                "border border-gray-200",
+                "transition-colors",
+                "flex items-center justify-center"
+              )}
+              onClick={() => setIsChatOpen(false)}
+            >
+              <X className="h-4 w-4 text-gray-600" />
+            </Button>
+          </div>
+
+          {/* Chat Interface */}
+          <div className="h-[calc(600px-88px)] bg-gradient-to-b from-white to-blue-50/30">
+            <ChatInterface />
+          </div>
+        </div>
+      )}
 
       {/* Overlay for mobile */}
       {isMobileMenuOpen && (

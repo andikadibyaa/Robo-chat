@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth"
 import DashboardLayout from "@/components/dashboard-layout"
 import StaffTable from "@/components/staff-table"
 import StaffStats from "@/components/staff-stats"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserCircle } from "lucide-react"
+import { UserDropdownMenu } from "@/components/user-dropdown-menu"
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions)
@@ -18,10 +21,7 @@ export default async function Dashboard() {
       <div className="p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <h1 className="text-3xl font-bold">Staff Tracking</h1>
-          <div className="flex items-center mt-4 md:mt-0">
-            <span className="text-sm text-gray-500 mr-2">Logged in as:</span>
-            <span className="font-medium">{session.user?.name || session.user?.email}</span>
-          </div>
+          <UserDropdownMenu user={session.user} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
