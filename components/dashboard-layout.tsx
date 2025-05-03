@@ -8,8 +8,21 @@ import { signOut } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import ChatInterface from "@/components/chat-interface"
-import { LayoutDashboard, Users, BarChart3, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react"
+import { LayoutDashboard, Users, BarChart3, Settings, LogOut, Menu, X, MessageCircle, LineChart } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Card } from "@/components/ui/card"
+import { 
+  BarChart as RechartsBarChart, 
+  PieChart as RechartsPieChart,
+  LineChart as RechartsLineChart,
+  CorrelationMatrix,
+  FeatureImportance,
+  StateTransitionDiagram 
+} from "@/components/charts"
+import StaffStateDistribution from "@/components/staff-state-distribution"
+import { DataTable } from "@/components/ui/data-table"
+import { Plus } from "lucide-react"
+import { PredictionForm } from "@/components/prediction-form"
 
 export default function DashboardLayout({
   children,
@@ -33,6 +46,11 @@ export default function DashboardLayout({
       label: "Staff Management"
     },
     {
+      href: "/dashboard/predictions",
+      icon: LineChart,
+      label: "Predictions"
+    },
+    {
       href: "/dashboard/analytics",
       icon: BarChart3,
       label: "Analytics"
@@ -53,6 +71,37 @@ export default function DashboardLayout({
     await signOut({ redirect: false })
     router.push("/")
   }
+
+  const columns = [
+    {
+      accessorKey: "id",
+      header: "Nama Staff"
+    },
+    {
+      accessorKey: "bars",
+      header: "Attitude Score"
+    },
+    {
+      accessorKey: "kpi",
+      header: "KPI"
+    },
+    {
+      accessorKey: "state",
+      header: "Status"
+    },
+    {
+      accessorKey: "selisih",
+      header: "Masa Kerja"
+    },
+    {
+      accessorKey: "posisi",
+      header: "Posisi"
+    },
+    {
+      accessorKey: "tahun",
+      header: "Tahun"
+    }
+  ]
 
   return (
     <div className="flex h-screen bg-gray-100">

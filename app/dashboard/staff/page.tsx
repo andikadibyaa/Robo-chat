@@ -1,3 +1,5 @@
+"use client"
+
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
@@ -6,6 +8,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserPlus } from "lucide-react"
+import { readStaffData, StaffData } from '@/lib/excel-utils'
+import { DataTable } from "@/components/ui/data-table"
+
+const columns = [
+  { key: "id", header: "Nama Staff" },
+  { key: "bars", header: "Attitude Score" },
+  { key: "kpi", header: "KPI" },
+  { key: "state", header: "Status" },
+  { key: "selisih", header: "Masa Kerja" },
+  { key: "posisi", header: "Posisi" },
+  { key: "tahun", header: "Tahun" },
+] as const
 
 export default async function StaffManagement() {
   const session = await getServerSession(authOptions)
@@ -15,6 +29,8 @@ export default async function StaffManagement() {
     redirect("/")
   }
 
+  const staffData = readStaffData()
+
   return (
     <DashboardLayout>
       <div className="p-6">
@@ -22,7 +38,7 @@ export default async function StaffManagement() {
           <h1 className="text-3xl font-bold">Staff Management</h1>
           <Button>
             <UserPlus className="mr-2 h-4 w-4" />
-            Add New Staff
+            Tambah Staff
           </Button>
         </div>
 
@@ -104,6 +120,8 @@ export default async function StaffManagement() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <DataTable columns={columns} data={staffData} />
       </div>
     </DashboardLayout>
   )

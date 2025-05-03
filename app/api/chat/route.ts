@@ -1,26 +1,53 @@
-import { openai } from "@ai-sdk/openai"
-import { streamText } from "ai"
-
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  const { messages, knowledgeBase } = await req.json()
+  try {
+    const body = await req.json();
+    const { message } = body;
 
-  // Create a system message that includes the knowledge base
-  const systemMessage = knowledgeBase
-    ? `You are a helpful assistant that answers questions based on the following information:
-       
-       ${knowledgeBase}
-       
-       If the question cannot be answered based on the provided information, say so politely.`
-    : "You are a helpful assistant."
+    if (message.startsWith('/predict')) {
+      const parts = message.split(' ');
+      if (parts.length !== 5) {
+        return NextResponse.json(
+          { message: 'Invalid prediction format. Use: /predict <bars> <kpi> <selisih> <position>' },
+          { status: 400 }
+        );
+      }
 
-  const result = streamText({
-    model: openai("gpt-4o"),
-    messages,
-    system: systemMessage,
-  })
+      const [_, bars, kpi, selisih, posisi] = parts;
 
-  return result.toDataStreamResponse()
+      const response = await fetch('http://localhost:5000/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          bars: parseFloat(bars),
+          kpi: parseFloat(kpi),
+          selisih: parseFloat(selisih),
+          posisi: posisi.toLowerCase(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return NextResponse.json(
+          { message: errorData.error || 'Error from prediction server' },
+          { status: response.status }
+        );
+      }
+
+      const data = await response.json();
+      return NextResponse.json({ message: data.message });
+    }
+
+    return NextResponse.json({ message: 'Invalid command' });
+  } catch (error) {
+    console.error('Error:', error);
+    return NextResponse.json(
+      { message: 'Error processing your request. Please try again.' },
+      { status: 500 }
+    );
+  }
 }
